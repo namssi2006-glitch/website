@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GLITCH — 오류가 만든 시각 언어</title>
+  <meta name="description" content="글리치 효과의 개념, 역사, 원리, 디자인 활용을 인터랙티브하게 설명하는 웹페이지" />
+  <style>
+    :root{
+      --bg:#070707;
+      --panel:#111111;
+      --text:#f5f5f2;
+      --muted:#9b9b94;
+      --line:#2d2d2d;
+      --cyan:#00f0ff;
+      --magenta:#ff2bd6;
+      --acid:#d8ff38;
+      --glitch:0.65;
+      --noise:.12;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial, Helvetica, sans-serif;
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:99;
+      opacity:var(--noise);
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(255,255,255,.05) 0,
+          rgba(255,255,255,.05) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      mix-blend-mode:screen;
+    }
+
+    a{color:inherit;text-decoration:none}
+
+    .topbar{
+      position:fixed;
+      top:0;left:0;right:0;
+      z-index:100;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 22px;
+      border-bottom:1px solid var(--line);
+      background:rgba(7,7,7,.78);
+      backdrop-filter:blur(12px);
+      font-size:12px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+
+    .nav{display:flex;gap:20px}
+    .nav a{color:var(--muted)}
+    .nav a:hover{color:var(--acid)}
+
+    .hero{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:100px 24px 50px;
+      position:relative;
+      border-bottom:1px solid var(--line);
+      overflow:hidden;
+    }
+
+    .hero-grid{
+      position:absolute;
+      inset:0;
+      opacity:.18;
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg,var(--line) 1px, transparent 1px);
+      background-size:48px 48px;
+      transform:perspective(700px) rotateX(60deg) scale(1.5) translateY(28%);
+      transform-origin:center bottom;
+    }
+
+    .hero-content{
+      width:min(1180px,100%);
+      z-index:2;
+    }
+
+    .eyebrow{
+      color:var(--acid);
+      font-size:12px;
+      letter-spacing:.25em;
+      text-transform:uppercase;
+      margin-bottom:22px;
+    }
+
+    .glitch-title{
+      position:relative;
+      margin:0;
+      font-size:clamp(78px,18vw,260px);
+      line-height:.78;
+      letter-spacing:-.08em;
+      font-weight:900;
+      text-transform:uppercase;
+      width:max-content;
+      max-width:100%;
+    }
+
+    .glitch-title::before,
+    .glitch-title::after{
+      content:attr(data-text);
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      opacity:calc(.9 * var(--glitch));
+    }
+
+    .glitch-title::before{
+      color:var(--cyan);
+      transform:translate(calc(-10px * var(--glitch)), calc(2px * var(--glitch)));
+      clip-path:polygon(0 4%,100% 4%,100% 31%,0 31%);
+      animation:gl1 1.7s infinite steps(2,end);
+    }
+
+    .glitch-title::after{
+      color:var(--magenta);
+      transform:translate(calc(10px * var(--glitch)), calc(-2px * var(--glitch)));
+      clip-path:polygon(0 58%,100% 58%,100% 84%,0 84%);
+      animation:gl2 1.3s infinite steps(2,end);
+    }
+
+    @keyframes gl1{
+      0%,92%,100%{clip-path:polygon(0 4%,100% 4%,100% 31%,0 31%)}
+      94%{clip-path:polygon(0 42%,100% 42%,100% 47%,0 47%)}
+      96%{clip-path:polygon(0 67%,100% 67%,100% 76%,0 76%)}
+      98%{clip-path:polygon(0 12%,100% 12%,100% 19%,0 19%)}
+    }
+    @keyframes gl2{
+      0%,88%,100%{clip-path:polygon(0 58%,100% 58%,100% 84%,0 84%)}
+      90%{clip-path:polygon(0 20%,100% 20%,100% 27%,0 27%)}
+      94%{clip-path:polygon(0 75%,100% 75%,100% 92%,0 92%)}
+      97%{clip-path:polygon(0 35%,100% 35%,100% 40%,0 40%)}
+    }
+
+    .hero-bottom{
+      margin-top:46px;
+      display:grid;
+      grid-template-columns:1.5fr 1fr;
+      gap:40px;
+      align-items:end;
+    }
+
+    .hero-copy{
+      max-width:690px;
+      font-size:clamp(18px,2.2vw,30px);
+      line-height:1.45;
+      letter-spacing:-.03em;
+    }
+
+    .hero-meta{
+      border-top:1px solid var(--line);
+      padding-top:12px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.8;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    main section{
+      padding:110px 24px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .wrap{width:min(1180px,100%);margin:0 auto}
+    .section-head{
+      display:grid;
+      grid-template-columns:160px 1fr;
+      gap:40px;
+      margin-bottom:70px;
+    }
+
+    .section-no{
+      color:var(--acid);
+      font-size:12px;
+      letter-spacing:.2em;
+    }
+
+    h2{
+      margin:0;
+      font-size:clamp(40px,7vw,92px);
+      line-height:.95;
+      letter-spacing:-.055em;
+    }
+
+    .lead{
+      margin-top:26px;
+      max-width:760px;
+      font-size:20px;
+      line-height:1.7;
+      color:#d0d0ca;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      border-top:1px solid var(--line);
+      border-left:1px solid var(--line);
+    }
+
+    .card{
+      min-height:290px;
+      padding:28px;
+      border-right:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+      position:relative;
+      overflow:hidden;
+      background:linear-gradient(180deg,rgba(255,255,255,.01),transparent);
+    }
+    .card:hover{background:#0c0c0c}
+    .card .num{
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:.15em;
+    }
+    .card h3{
+      margin:70px 0 14px;
+      font-size:28px;
+      letter-spacing:-.04em;
+    }
+    .card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+      font-size:14px;
+    }
+
+    .rgb-demo{
+      height:420px;
+      position:relative;
+      display:grid;
+      place-items:center;
+      border:1px solid var(--line);
+      overflow:hidden;
+      background:#0b0b0b;
+      margin-top:50px;
+    }
+    .rgb-demo .word{
+      font-size:clamp(60px,12vw,160px);
+      font-weight:900;
+      letter-spacing:-.07em;
+      position:relative;
+    }
+    .rgb-demo .word::before,
+    .rgb-demo .word::after{
+      content:"ERROR";
+      position:absolute;
+      inset:0;
+      mix-blend-mode:screen;
+      pointer-events:none;
+    }
+    .rgb-demo .word::before{
+      color:var(--cyan);
+      transform:translate(calc(-18px * var(--glitch)), 0);
+    }
+    .rgb-demo .word::after{
+      color:var(--magenta);
+      transform:translate(calc(18px * var(--glitch)), 0);
+    }
+
+    .timeline{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:0;
+      border-top:1px solid var(--line);
+      border-left:1px solid var(--line);
+    }
+    .timeline-item{
+      padding:26px;
+      min-height:300px;
+      border-right:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+    }
+    .year{
+      font-size:42px;
+      letter-spacing:-.06em;
+      color:var(--acid);
+      margin-bottom:70px;
+    }
+    .timeline-item h3{font-size:20px;margin:0 0 12px}
+    .timeline-item p{font-size:14px;line-height:1.7;color:var(--muted);margin:0}
+
+    .principles{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:1px;
+      background:var(--line);
+      border:1px solid var(--line);
+    }
+    .principle{
+      background:var(--bg);
+      padding:34px;
+      min-height:340px;
+    }
+    .principle-visual{
+      height:160px;
+      margin-bottom:34px;
+      display:grid;
+      place-items:center;
+      border:1px solid var(--line);
+      overflow:hidden;
+      position:relative;
+      font-weight:800;
+      font-size:36px;
+      letter-spacing:-.05em;
+    }
+    .slice span:nth-child(2){transform:translateX(20px);clip-path:inset(35% 0 35% 0);position:absolute;color:var(--magenta)}
+    .offset span:nth-child(2){position:absolute;color:var(--cyan);transform:translateX(-9px);opacity:.8}
+    .noise::after{
+      content:"";
+      position:absolute;inset:0;
+      background-image:repeating-linear-gradient(90deg,transparent 0 4px,rgba(255,255,255,.22) 5px 6px);
+      opacity:.4;
+    }
+    .repeat span{position:absolute}
+    .repeat span:nth-child(1){transform:translate(-18px,-8px);color:var(--cyan);opacity:.7}
+    .repeat span:nth-child(2){transform:translate(0,0);color:white}
+    .repeat span:nth-child(3){transform:translate(18px,8px);color:var(--magenta);opacity:.7}
+
+    .principle h3{font-size:26px;margin:0 0 12px}
+    .principle p{font-size:14px;line-height:1.7;color:var(--muted);max-width:490px}
+
+    .lab{
+      display:grid;
+      grid-template-columns:1.5fr .8fr;
+      gap:28px;
+      align-items:stretch;
+    }
+
+    .lab-screen{
+      min-height:510px;
+      border:1px solid var(--line);
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,43,214,.12), transparent 30%),
+        radial-gradient(circle at 70% 70%, rgba(0,240,255,.12), transparent 30%),
+        #090909;
+    }
+
+    .lab-object{
+      font-size:clamp(52px,8vw,110px);
+      font-weight:900;
+      letter-spacing:-.06em;
+      position:relative;
+      user-select:none;
+    }
+
+    .lab-object::before,
+    .lab-object::after{
+      content:attr(data-text);
+      position:absolute;inset:0;
+      opacity:var(--glitch);
+      pointer-events:none;
+    }
+    .lab-object::before{
+      color:var(--cyan);
+      transform:translate(calc(-20px * var(--glitch)),calc(3px * var(--glitch)));
+      clip-path:inset(0 0 53% 0);
+    }
+    .lab-object::after{
+      color:var(--magenta);
+      transform:translate(calc(20px * var(--glitch)),calc(-2px * var(--glitch)));
+      clip-path:inset(50% 0 0 0);
+    }
+
+    .scanline{
+      position:absolute;
+      left:0;right:0;
+      height:2px;
+      background:var(--acid);
+      box-shadow:0 0 20px rgba(216,255,56,.7);
+      top:20%;
+      opacity:.6;
+      animation:scan 3.8s linear infinite;
+    }
+    @keyframes scan{from{top:5%}to{top:95%}}
+
+    .controls{
+      border:1px solid var(--line);
+      padding:26px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:28px;
+      background:var(--panel);
+    }
+    .control label{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:10px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    input[type=range]{width:100%;accent-color:var(--acid)}
+    button{
+      width:100%;
+      border:0;
+      padding:17px 18px;
+      background:var(--acid);
+      color:#111;
+      font:700 13px Arial, sans-serif;
+      letter-spacing:.1em;
+      cursor:pointer;
+      text-transform:uppercase;
+    }
+    button:hover{filter:invert(1)}
+
+    .use-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:20px;
+    }
+    .use-item{
+      min-height:250px;
+      padding:26px;
+      border:1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .use-item h3{font-size:24px;margin:0}
+    .use-item p{font-size:14px;line-height:1.65;color:var(--muted)}
+    .tag{
+      display:inline-block;
+      color:var(--acid);
+      font-size:11px;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+    }
+
+    .quote{
+      padding:120px 24px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .quote p{
+      width:min(1000px,100%);
+      margin:0 auto;
+      font-size:clamp(38px,6vw,86px);
+      font-weight:800;
+      line-height:1.05;
+      letter-spacing:-.055em;
+    }
+    .quote .accent{color:var(--acid)}
+
+    footer{
+      padding:28px 24px 50px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    footer .wrap{
+      display:flex;
+      justify-content:space-between;
+      gap:20px;
+      border-top:1px solid var(--line);
+      padding-top:20px;
+    }
+
+    .scramble{display:inline-block}
+
+    @media (max-width:800px){
+      .nav{display:none}
+      .hero-bottom,.section-head,.lab{grid-template-columns:1fr}
+      .cards,.timeline,.use-grid{grid-template-columns:1fr}
+      .principles{grid-template-columns:1fr}
+      .section-head{gap:18px}
+      .hero{align-items:center}
+      main section{padding:78px 18px}
+      .hero{padding-inline:18px}
+      .topbar{padding-inline:18px}
+      .glitch-title{font-size:clamp(74px,26vw,150px)}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none !important;scroll-behavior:auto !important}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div>GLITCH / VISUAL ERROR STUDY</div>
+    <nav class="nav">
+      <a href="#definition">Definition</a>
+      <a href="#history">History</a>
+      <a href="#language">Language</a>
+      <a href="#lab">Lab</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="eyebrow">Interface Design — Visual Effect Archive</div>
+      <h1 class="glitch-title" data-text="GLITCH">GLITCH</h1>
+      <div class="hero-bottom">
+        <div class="hero-copy">
+          오류는 실패일까, 아니면 새로운 이미지의 시작일까?
+          <strong>글리치(Glitch)</strong>는 디지털 시스템의 순간적인 오류를
+          의도적인 시각 언어로 전환한 표현 방식이다.
+        </div>
+        <div class="hero-meta">
+          Visual Error<br>
+          Signal Distortion<br>
+          RGB Separation<br>
+          Noise / Fragment / Repeat
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section id="definition">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-no">01 / DEFINITION</div>
+          <div>
+            <h2>오류가<br>디자인이 되는 순간</h2>
+            <p class="lead">
+              글리치는 원래 전자 장치나 디지털 시스템에서 발생하는 짧고 예기치 않은 오류를 뜻한다.
+              디자인에서는 화면 깨짐, 색 분리, 신호 손실, 픽셀 노이즈처럼 ‘정상적이지 않은 상태’를
+              일부러 드러내어 긴장감과 속도감, 불완전성을 표현한다.
+            </p>
+          </div>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <div class="num">A / ERROR</div>
+            <h3>결함의 노출</h3>
+            <p>완성된 화면 뒤에 숨겨진 디지털 구조가 오류를 통해 표면으로 드러난다.</p>
+          </article>
+          <article class="card">
+            <div class="num">B / ACCIDENT</div>
+            <h3>우연성</h3>
+            <p>통제하기 어려운 흔들림과 불규칙성이 예측 불가능한 리듬을 만든다.</p>
+          </article>
+          <article class="card">
+            <div class="num">C / AESTHETIC</div>
+            <h3>의도된 불완전함</h3>
+            <p>오류를 제거하는 대신 남겨 두고, 하나의 조형적 스타일로 적극 사용한다.</p>
+          </article>
+        </div>
+
+        <div class="rgb-demo">
+          <div class="word">ERROR</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="history">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-no">02 / HISTORY</div>
+          <div>
+            <h2>신호의 결함에서<br>디지털 미학으로</h2>
+            <p class="lead">
+              글리치 미학은 텔레비전 신호 왜곡과 전자 영상 실험에서 출발해,
+              컴퓨터 그래픽과 인터넷 문화, 현대의 브랜딩과 인터페이스로 확장되었다.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="year">1960s</div>
+            <h3>전자 영상 실험</h3>
+            <p>비디오 신호를 변형하고 전자 장치의 특성을 작품 자체의 재료로 사용하는 실험이 등장했다.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="year">1990s</div>
+            <h3>디지털 오류</h3>
+            <p>컴퓨터 이미지와 압축 파일의 손상, 픽셀 깨짐이 새로운 시각 현상으로 인식되기 시작했다.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="year">2000s</div>
+            <h3>Glitch Art</h3>
+            <p>데이터 손상과 소프트웨어 오류를 의도적으로 만들어 작품화하는 디지털 아트 흐름이 확산되었다.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="year">NOW</div>
+            <h3>Interface Culture</h3>
+            <p>뮤직비디오, 패션, 게임, 브랜딩, 웹 인터페이스에서 역동적이고 반항적인 이미지로 활용된다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="language">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-no">03 / VISUAL LANGUAGE</div>
+          <div>
+            <h2>글리치를 만드는<br>네 가지 시각 원리</h2>
+          </div>
+        </div>
+
+        <div class="principles">
+          <article class="principle">
+            <div class="principle-visual offset"><span>SHIFT</span><span>SHIFT</span></div>
+            <h3>01. Channel Offset</h3>
+            <p>RGB 색상 채널을 서로 다른 방향으로 미세하게 이동시켜 영상 신호가 어긋난 듯한 인상을 만든다.</p>
+          </article>
+
+          <article class="principle">
+            <div class="principle-visual slice"><span>SLICE</span><span>SLICE</span></div>
+            <h3>02. Slice & Displacement</h3>
+            <p>이미지 또는 텍스트의 일부 구간을 잘라 수평·수직으로 밀어내어 파편화된 구조를 만든다.</p>
+          </article>
+
+          <article class="principle">
+            <div class="principle-visual noise"><span>NOISE</span></div>
+            <h3>03. Noise</h3>
+            <p>스캔라인, 픽셀 점, 압축 노이즈 등을 겹쳐 디지털 화면의 물성과 불안정한 신호감을 강조한다.</p>
+          </article>
+
+          <article class="principle">
+            <div class="principle-visual repeat"><span>ECHO</span><span>ECHO</span><span>ECHO</span></div>
+            <h3>04. Repeat & Echo</h3>
+            <p>같은 요소를 중첩하거나 반복해 시간 지연, 잔상, 데이터 중복처럼 보이는 효과를 만든다.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="lab">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-no">04 / INTERACTIVE LAB</div>
+          <div>
+            <h2>오류의 강도를<br>직접 조절해보기</h2>
+            <p class="lead">슬라이더를 움직여 RGB 분리와 화면 노이즈의 강도를 바꿔보세요.</p>
+          </div>
+        </div>
+
+        <div class="lab">
+          <div class="lab-screen" id="labScreen">
+            <div class="scanline"></div>
+            <div class="lab-object" id="labObject" data-text="SIGNAL">SIGNAL</div>
+          </div>
+
+          <aside class="controls">
+            <div>
+              <div class="control">
+                <label><span>Glitch intensity</span><span id="glitchValue">65%</span></label>
+                <input id="glitchRange" type="range" min="0" max="100" value="65">
+              </div>
+              <div class="control" style="margin-top:28px">
+                <label><span>Noise</span><span id="noiseValue">12%</span></label>
+                <input id="noiseRange" type="range" min="0" max="35" value="12">
+              </div>
+            </div>
+            <button id="randomize">Random Error</button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="usage">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="section-no">05 / APPLICATION</div>
+          <div>
+            <h2>어디에<br>사용될까?</h2>
+          </div>
+        </div>
+
+        <div class="use-grid">
+          <article class="use-item">
+            <span class="tag">Brand Identity</span>
+            <div>
+              <h3>브랜딩</h3>
+              <p>기술적, 실험적, 반항적, 미래적인 이미지를 짧은 순간에 전달할 수 있다.</p>
+            </div>
+          </article>
+          <article class="use-item">
+            <span class="tag">Music / Motion</span>
+            <div>
+              <h3>뮤직·모션</h3>
+              <p>비트와 화면 오류를 동기화하여 강한 리듬과 에너지를 시각적으로 확장한다.</p>
+            </div>
+          </article>
+          <article class="use-item">
+            <span class="tag">Web / UI</span>
+            <div>
+              <h3>웹 인터페이스</h3>
+              <p>호버, 로딩, 전환처럼 짧은 상호작용에 사용하면 정보 구조를 해치지 않으면서 개성을 만들 수 있다.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="quote">
+      <p>
+        GLITCH는 오류를 숨기지 않는다.<br>
+        오히려 <span class="accent scramble" data-word="오류 자체를 보여준다.">오류 자체를 보여준다.</span>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>GLITCH — VISUAL EFFECT ARCHIVE</span>
+      <span>INTERFACE DESIGN / EWHA W. UNIV.</span>
+    </div>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    const glitchRange = document.getElementById('glitchRange');
+    const noiseRange = document.getElementById('noiseRange');
+    const glitchValue = document.getElementById('glitchValue');
+    const noiseValue = document.getElementById('noiseValue');
+    const randomize = document.getElementById('randomize');
+    const labObject = document.getElementById('labObject');
+
+    function updateGlitch(v){
+      const n = Number(v) / 100;
+      root.style.setProperty('--glitch', n);
+      glitchValue.textContent = v + '%';
+    }
+
+    function updateNoise(v){
+      root.style.setProperty('--noise', Number(v)/100);
+      noiseValue.textContent = v + '%';
+    }
+
+    glitchRange.addEventListener('input', e => updateGlitch(e.target.value));
+    noiseRange.addEventListener('input', e => updateNoise(e.target.value));
+
+    randomize.addEventListener('click', () => {
+      const g = Math.floor(Math.random()*101);
+      const n = Math.floor(Math.random()*36);
+      glitchRange.value = g;
+      noiseRange.value = n;
+      updateGlitch(g);
+      updateNoise(n);
+
+      const words = ['SIGNAL','ERROR','NO DATA','BROKEN','GLITCH'];
+      const word = words[Math.floor(Math.random()*words.length)];
+      labObject.textContent = word;
+      labObject.dataset.text = word;
+
+      labObject.animate([
+        {transform:'translateX(0) skewX(0deg)'},
+        {transform:'translateX(-18px) skewX(8deg)'},
+        {transform:'translateX(14px) skewX(-5deg)'},
+        {transform:'translateX(0) skewX(0deg)'}
+      ], {duration:320, iterations:1});
+    });
+
+    const scramble = document.querySelector('.scramble');
+    const chars = '01#%&@/<>[]';
+    let scrambling = false;
+
+    scramble.addEventListener('mouseenter', () => {
+      if(scrambling) return;
+      scrambling = true;
+      const original = scramble.dataset.word;
+      let frame = 0;
+      const timer = setInterval(() => {
+        scramble.textContent = original.split('').map((c,i) => {
+          if(c === ' ') return ' ';
+          return i < frame/2 ? c : chars[Math.floor(Math.random()*chars.length)];
+        }).join('');
+        frame++;
+        if(frame > original.length*2){
+          clearInterval(timer);
+          scramble.textContent = original;
+          scrambling = false;
+        }
+      }, 40);
+    });
+  </script>
+</body>
+</html>
